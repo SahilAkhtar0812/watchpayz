@@ -484,41 +484,827 @@
 </div>
 
 
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '17080240033624851');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1126769609740783&ev=PageView&noscript=1"
-/></noscript>
+   <script>
+
+/* =========================================================
+   WATCHPAYZ — LEAD EVENT SCRIPT
+   Telegram CTA → Meta Pixel Lead
+   ========================================================= */
+
+const CONFIG = {
+    pixelId: '1724972371893394',
+    telegramUrl: 'https://t.me/+Gmnwx7z_9kllMzFl'
+};
 
 
-<script>
-  var TELEGRAM_URL = 'https://t.me/+CzOYNtn6rYFmNmI1';
+/* =========================================================
+   META PIXEL LOADER
+   ========================================================= */
 
-  function trackLead(event) {
-    // Track the lead when the Telegram link is clicked.
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead', {
-        content_name: 'WatchPayz Telegram',
-        content_category: 'Telegram Lead'
-      });
+(function (f, b, e, v, n, t, s) {
+    if (f.fbq) return;
+
+    n = f.fbq = function () {
+        n.callMethod ?
+            n.callMethod.apply(n, arguments) :
+            n.queue.push(arguments);
+    };
+
+    if (!f._fbq) f._fbq = n;
+
+    n.push = n;
+    n.loaded = true;
+    n.version = '2.0';
+    n.queue = [];
+
+    t = b.createElement(e);
+    t.async = true;
+    t.src = v;
+
+    s = b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t, s);
+
+})(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+
+/* =========================================================
+   INITIALIZE PIXEL
+   ========================================================= */
+
+function initializePixel() {
+
+    if (typeof fbq !== 'function') {
+        console.warn('Meta Pixel is not available.');
+        return false;
     }
-  }
 
-  document.querySelectorAll('#nav-download, #hero-download-top, #final-download')
-    .forEach(function(el) {
-      el.addEventListener('click', trackLead);
+    try {
+
+        fbq('init', CONFIG.pixelId);
+
+        return true;
+
+    } catch (error) {
+
+        console.error('Meta Pixel initialization failed:', error);
+
+        return false;
+    }
+}
+
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
+let pageViewTracked = false;
+let leadTracked = false;
+
+let visitorQualified = false;
+let qualificationComplete = false;
+
+let pageLoadTime = Date.now();
+
+let engagementStartTime = Date.now();
+
+let timeOnPageMs = 0;
+
+
+/* =========================================================
+   UTILITY FUNCTIONS
+   ========================================================= */
+
+function getTimeOnPage() {
+
+    return Date.now() - pageLoadTime;
+}
+
+
+function getTimeOnPageSeconds() {
+
+    return Math.round(getTimeOnPage() / 1000);
+}
+
+
+function isMetaPixelReady() {
+
+    return typeof fbq === 'function';
+}
+
+
+/* =========================================================
+   DEVICE INFORMATION
+   ========================================================= */
+
+function getDeviceType() {
+
+    const width = window.innerWidth;
+
+    if (width <= 767) {
+        return 'mobile';
+    }
+
+    if (width <= 1024) {
+        return 'tablet';
+    }
+
+    return 'desktop';
+}
+
+
+function getBrowserInfo() {
+
+    const ua = navigator.userAgent;
+
+    if (ua.includes('Chrome') && !ua.includes('Edge')) {
+        return 'Chrome';
+    }
+
+    if (ua.includes('Firefox')) {
+        return 'Firefox';
+    }
+
+    if (ua.includes('Safari') && !ua.includes('Chrome')) {
+        return 'Safari';
+    }
+
+    if (ua.includes('Edge')) {
+        return 'Edge';
+    }
+
+    return 'Other';
+}
+
+
+/* =========================================================
+   VISITOR INFORMATION
+   ========================================================= */
+
+function getVisitorData() {
+
+    return {
+
+        device: getDeviceType(),
+
+        browser: getBrowserInfo(),
+
+        language: navigator.language || '',
+
+        screen_width: window.screen.width,
+
+        screen_height: window.screen.height,
+
+        viewport_width: window.innerWidth,
+
+        viewport_height: window.innerHeight,
+
+        referrer: document.referrer || '',
+
+        landing_page: window.location.href
+
+    };
+}
+
+
+/* =========================================================
+   QUALIFICATION SYSTEM
+   ========================================================= */
+
+function calculateVisitorQualification() {
+
+    const timeSpent = getTimeOnPageSeconds();
+
+    const scrollHeight =
+        document.documentElement.scrollHeight ||
+        document.body.scrollHeight ||
+        0;
+
+    const viewportHeight = window.innerHeight;
+
+    const scrollTop =
+        window.scrollY ||
+        window.pageYOffset ||
+        0;
+
+    let scrollPercentage = 0;
+
+    if (scrollHeight > viewportHeight) {
+
+        scrollPercentage =
+            ((scrollTop + viewportHeight) / scrollHeight) * 100;
+
+    } else {
+
+        scrollPercentage = 100;
+
+    }
+
+    /*
+       Visitor qualification rules.
+
+       A visitor is considered qualified when
+       they have spent sufficient time on the page
+       or have meaningfully interacted with it.
+    */
+
+    if (timeSpent >= 5 || scrollPercentage >= 25) {
+
+        visitorQualified = true;
+
+    }
+
+    return visitorQualified;
+}
+
+
+/* =========================================================
+   PAGEVIEW TRACKING
+   ========================================================= */
+
+function trackQualifiedPageView() {
+
+    if (pageViewTracked) {
+        return;
+    }
+
+    if (!isMetaPixelReady()) {
+        return;
+    }
+
+    calculateVisitorQualification();
+
+    if (!visitorQualified) {
+        return;
+    }
+
+    try {
+
+        const visitorData = getVisitorData();
+
+        fbq(
+            'track',
+            'PageView',
+            {
+                page_url: window.location.href,
+
+                page_title: document.title,
+
+                device: visitorData.device,
+
+                browser: visitorData.browser,
+
+                language: visitorData.language,
+
+                referrer: visitorData.referrer,
+
+                time_on_page:
+                    getTimeOnPageSeconds()
+            }
+        );
+
+        pageViewTracked = true;
+        qualificationComplete = true;
+
+    } catch (error) {
+
+        console.error(
+            'PageView tracking failed:',
+            error
+        );
+
+    }
+}
+
+
+/* =========================================================
+   SCROLL TRACKING
+   ========================================================= */
+
+let scrollTrackingTimeout = null;
+
+function handleScroll() {
+
+    if (scrollTrackingTimeout) {
+        return;
+    }
+
+    scrollTrackingTimeout = setTimeout(function () {
+
+        scrollTrackingTimeout = null;
+
+        calculateVisitorQualification();
+
+        if (visitorQualified) {
+
+            trackQualifiedPageView();
+
+        }
+
+    }, 250);
+}
+
+
+/* =========================================================
+   TIME TRACKING
+   ========================================================= */
+
+function updateTimeOnPage() {
+
+    timeOnPageMs = getTimeOnPage();
+
+    calculateVisitorQualification();
+
+}
+
+
+/* =========================================================
+   VISIBILITY TRACKING
+   ========================================================= */
+
+document.addEventListener(
+    'visibilitychange',
+    function () {
+
+        if (document.visibilityState === 'visible') {
+
+            engagementStartTime = Date.now();
+
+        } else {
+
+            if (engagementStartTime) {
+
+                timeOnPageMs +=
+                    Date.now() - engagementStartTime;
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   USER INTERACTION TRACKING
+   ========================================================= */
+
+let interactionDetected = false;
+
+function registerInteraction() {
+
+    if (interactionDetected) {
+        return;
+    }
+
+    interactionDetected = true;
+
+    calculateVisitorQualification();
+
+    if (visitorQualified) {
+
+        trackQualifiedPageView();
+
+    }
+}
+
+
+document.addEventListener(
+    'click',
+    registerInteraction,
+    {
+        passive: true,
+        once: true
+    }
+);
+
+
+document.addEventListener(
+    'touchstart',
+    registerInteraction,
+    {
+        passive: true,
+        once: true
+    }
+);
+
+
+/* =========================================================
+   TELEGRAM CTA + LEAD EVENT
+   ========================================================= */
+
+function handleTelegramClick(event) {
+
+    /*
+       Do not block the Telegram link.
+
+       The visitor should still be redirected
+       to Telegram even if Meta Pixel fails.
+    */
+
+    calculateVisitorQualification();
+
+    if (
+        isMetaPixelReady() &&
+        visitorQualified &&
+        !leadTracked
+    ) {
+
+        try {
+
+            const visitorData = getVisitorData();
+
+            fbq(
+                'track',
+                'Lead',
+                {
+                    value: 0,
+
+                    currency: 'INR',
+
+                    destination: 'Telegram',
+
+                    source:
+                        'CA Nitin Murarka Landing Page',
+
+                    time_on_page:
+                        Math.round(
+                            timeOnPageMs / 1000
+                        ),
+
+                    device:
+                        visitorData.device,
+
+                    browser:
+                        visitorData.browser
+                }
+            );
+
+            leadTracked = true;
+
+        } catch (error) {
+
+            console.error(
+                'Lead event tracking failed:',
+                error
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   TELEGRAM BUTTON SETUP
+   ========================================================= */
+
+function setupTelegramButtons() {
+
+    const buttons =
+        document.querySelectorAll(
+            '.join-link'
+        );
+
+    if (!buttons.length) {
+
+        console.warn(
+            'No .join-link Telegram buttons found.'
+        );
+
+        return;
+
+    }
+
+    buttons.forEach(function (button) {
+
+        /*
+           Always use the configured Telegram URL.
+        */
+
+        button.href =
+            CONFIG.telegramUrl;
+
+
+        /*
+           Add Lead tracking.
+        */
+
+        button.addEventListener(
+            'click',
+            handleTelegramClick,
+            {
+                capture: true
+            }
+        );
+
     });
-</script>
 
+}
+
+
+/* =========================================================
+   GENERIC TELEGRAM LINKS
+   ========================================================= */
+
+function setupTelegramLinks() {
+
+    const links =
+        document.querySelectorAll(
+            'a[href*="t.me"]'
+        );
+
+    links.forEach(function (link) {
+
+        if (
+            !link.classList.contains(
+                'join-link'
+            )
+        ) {
+
+            link.addEventListener(
+                'click',
+                handleTelegramClick,
+                {
+                    capture: true
+                }
+            );
+
+        }
+
+    });
+
+}
+
+
+/* =========================================================
+   BUTTON FALLBACK
+   ========================================================= */
+
+function setupAllCTAButtons() {
+
+    const selectors = [
+
+        '.join-link',
+
+        '.telegram-button',
+
+        '.telegram-btn',
+
+        '[data-telegram]',
+
+        '[data-action="telegram"]'
+
+    ];
+
+    const elements =
+        document.querySelectorAll(
+            selectors.join(',')
+        );
+
+    elements.forEach(function (element) {
+
+        if (
+            element.tagName === 'A'
+        ) {
+
+            element.href =
+                CONFIG.telegramUrl;
+
+        }
+
+        element.addEventListener(
+            'click',
+            handleTelegramClick,
+            {
+                capture: true
+            }
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   INITIAL PAGE QUALIFICATION
+   ========================================================= */
+
+function startQualificationTracking() {
+
+    calculateVisitorQualification();
+
+    /*
+       Give the visitor time to interact
+       before sending the PageView.
+    */
+
+    setTimeout(
+        function () {
+
+            calculateVisitorQualification();
+
+            trackQualifiedPageView();
+
+        },
+        5000
+    );
+
+}
+
+
+/* =========================================================
+   PERIODIC TIME CHECK
+   ========================================================= */
+
+setInterval(
+    function () {
+
+        updateTimeOnPage();
+
+        if (
+            visitorQualified &&
+            !pageViewTracked
+        ) {
+
+            trackQualifiedPageView();
+
+        }
+
+    },
+    1000
+);
+
+
+/* =========================================================
+   SCROLL EVENT
+   ========================================================= */
+
+window.addEventListener(
+    'scroll',
+    handleScroll,
+    {
+        passive: true
+    }
+);
+
+
+/* =========================================================
+   RESIZE EVENT
+   ========================================================= */
+
+window.addEventListener(
+    'resize',
+    function () {
+
+        calculateVisitorQualification();
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* =========================================================
+   DOM INITIALIZATION
+   ========================================================= */
+
+function initializeWatchPayzTracking() {
+
+    /*
+       Initialize Meta Pixel
+    */
+
+    initializePixel();
+
+
+    /*
+       Setup Telegram CTA buttons
+    */
+
+    setupTelegramButtons();
+
+
+    /*
+       Setup any additional Telegram links
+    */
+
+    setupTelegramLinks();
+
+
+    /*
+       Setup fallback CTA selectors
+    */
+
+    setupAllCTAButtons();
+
+
+    /*
+       Start visitor qualification
+    */
+
+    startQualificationTracking();
+
+}
+
+
+/* =========================================================
+   DOCUMENT READY
+   ========================================================= */
+
+if (
+    document.readyState === 'loading'
+) {
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        initializeWatchPayzTracking
+    );
+
+} else {
+
+    initializeWatchPayzTracking();
+
+}
+
+
+/* =========================================================
+   PAGE EXIT / UNLOAD
+   ========================================================= */
+
+window.addEventListener(
+    'beforeunload',
+    function () {
+
+        timeOnPageMs =
+            getTimeOnPage();
+
+    }
+);
+
+
+/* =========================================================
+   DEBUG INFORMATION
+   ========================================================= */
+
+window.WatchPayzTracking = {
+
+    getPixelId: function () {
+
+        return CONFIG.pixelId;
+
+    },
+
+    getTelegramUrl: function () {
+
+        return CONFIG.telegramUrl;
+
+    },
+
+    getTimeOnPage: function () {
+
+        return getTimeOnPageSeconds();
+
+    },
+
+    isQualified: function () {
+
+        return visitorQualified;
+
+    },
+
+    isPageViewTracked: function () {
+
+        return pageViewTracked;
+
+    },
+
+    isLeadTracked: function () {
+
+        return leadTracked;
+
+    },
+
+    trackLead: function () {
+
+        if (
+            !leadTracked &&
+            isMetaPixelReady()
+        ) {
+
+            handleTelegramClick();
+
+        }
+
+    }
+
+};
+
+
+/* =========================================================
+   END WATCHPAYZ SCRIPT
+   ========================================================= */
+</script>
 </body>
 </html>
